@@ -8,6 +8,12 @@ Tools : AI - Django Framework
 
 <img width="1600" height="666" alt="image" src="https://github.com/user-attachments/assets/11f4dd62-178b-44e7-a2b2-a3429677b7ee" />
 
+<img width="1845" height="809" alt="image" src="https://github.com/user-attachments/assets/5637507e-eec7-4f84-b6d1-d677ef6f4f03" />
+
+<img width="876" height="890" alt="image" src="https://github.com/user-attachments/assets/59af2afb-e2bc-44b0-be8e-6d2c2bd28eac" />
+
+
+
 
 
 
