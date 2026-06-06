@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Sistem Daur Ulang{% endblock %}
+{% block page_title %}Dashboard Utama{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block content %}
+{% load humanize %}
+
+<!-- Summary Cards Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card bg-sales">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-success text-white rounded-circle">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <div>
+                    <div class="stat-label">Penjualan Hari Ini</div>
+                    <div class="stat-value text-success">Rp {{ total_sales_today|floatformat:0|intcomma }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card bg-purchase">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-warning text-white rounded-circle">
+                    <i class="bi bi-cart-plus"></i>
+                </div>
+                <div>
+                    <div class="stat-label">Pembelian Hari Ini</div>
+                    <div class="stat-value text-warning">Rp {{ total_purchase_today|floatformat:0|intcomma }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card bg-opex">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-danger text-white rounded-circle">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+                <div>
+                    <div class="stat-label">Biaya Operasional Hari Ini</div>
+                    <div class="stat-value text-danger">Rp {{ total_opex_today|floatformat:0|intcomma }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card {% if net_cashflow_today >= 0 %}bg-net-positive{% else %}bg-net-negative{% endif %}">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon {% if net_cashflow_today >= 0 %}bg-success{% else %}bg-danger{% endif %} text-white rounded-circle">
+                    <i class="bi bi-cash-coin"></i>
+                </div>
+                <div>
+                    <div class="stat-label">Cashflow Bersih Hari Ini</div>
+                    <div class="stat-value {% if net_cashflow_today >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        {% if net_cashflow_today >= 0 %}+{% endif %}Rp {{ net_cashflow_today|floatformat:0|intcomma }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Weekly & Monthly Summary -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="chart-container">
+            <h6><i class="bi bi-calendar-week text-primary"></i> Ringkasan Minggu Ini</h6>
+            <table class="table table-sm table-borderless mb-0">
+                <tr>
+                    <td class="text-muted">Penjualan</td>
+                    <td class="fw-bold text-success text-end">Rp {{ total_sales_week|floatformat:0|intcomma }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Pembelian</td>
+                    <td class="fw-bold text-warning text-end">Rp {{ total_purchase_week|floatformat:0|intcomma }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Biaya Operasional</td>
+                    <td class="fw-bold text-danger text-end">Rp {{ total_opex_week|floatformat:0|intcomma }}</td>
+                </tr>
+                <tr class="border-top">
+                    <td class="fw-bold">Cashflow Bersih</td>
+                    <td class="fw-bold text-end {% if net_cashflow_week >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        {% if net_cashflow_week >= 0 %}+{% endif %}Rp {{ net_cashflow_week|floatformat:0|intcomma }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="chart-container">
+            <h6><i class="bi bi-calendar-month text-primary"></i> Ringkasan Bulan Ini</h6>
+            <table class="table table-sm table-borderless mb-0">
+                <tr>
+                    <td class="text-muted">Penjualan</td>
+                    <td class="fw-bold text-success text-end">Rp {{ total_sales_month|floatformat:0|intcomma }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Pembelian</td>
+                    <td class="fw-bold text-warning text-end">Rp {{ total_purchase_month|floatformat:0|intcomma }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Biaya Operasional</td>
+                    <td class="fw-bold text-danger text-end">Rp {{ total_opex_month|floatformat:0|intcomma }}</td>
+                </tr>
+                <tr class="border-top">
+                    <td class="fw-bold">Cashflow Bersih</td>
+                    <td class="fw-bold text-end {% if net_cashflow_month >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        {% if net_cashflow_month >= 0 %}+{% endif %}Rp {{ net_cashflow_month|floatformat:0|intcomma }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Stock Accumulation & Quick Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-8">
+        <div class="chart-container">
+            <h6><i class="bi bi-box-seam text-primary"></i> Akumulasi Stok per Jenis Sampah</h6>
+            {% if waste_accumulation %}
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Jenis Sampah</th>
+                            <th class="text-end">Masuk (Kg)</th>
+                            <th class="text-end">Keluar (Kg)</th>
+                            <th class="text-end">Stok (Kg)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in waste_accumulation %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-secondary me-1">{{ item.waste_type.get_category_display }}</span>
+                                {{ item.waste_type.name }}
+                            </td>
+                            <td class="text-end fw-bold text-success">{{ item.total_in|floatformat:2 }}</td>
+                            <td class="text-end fw-bold text-danger">{{ item.total_out|floatformat:2 }}</td>
+                            <td class="text-end fw-bold text-primary">{{ item.stock|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-3">Belum ada data stok</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="chart-container mb-3">
+            <h6><i class="bi bi-people text-primary"></i> Statistik Cepat</h6>
+            <div class="d-flex flex-column gap-2">
+                <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                    <span><i class="bi bi-people-fill text-success"></i> Pengupul Aktif</span>
+                    <span class="badge bg-success fs-6">{{ active_collectors }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                    <span><i class="bi bi-tag-fill text-info"></i> Jenis Sampah Aktif</span>
+                    <span class="badge bg-info fs-6">{{ active_waste_types }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                    <span><i class="bi bi-box-arrow-in-down text-warning"></i> Transaksi Hari Ini</span>
+                    <span class="badge bg-warning text-dark fs-6">{{ recent_transactions.count }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="chart-container">
+            <h6><i class="bi bi-lightning text-warning"></i> Aksi Cepat</h6>
+            <div class="d-grid gap-2">
+                <a href="{% url 'waste:transaction_in_create' %}" class="btn btn-success btn-sm">
+                    <i class="bi bi-plus-circle"></i> Catat Sampah Masuk
+                </a>
+                <a href="{% url 'waste:factory_sale_create' %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-building"></i> Jual ke Pabrik
+                </a>
+                <a href="{% url 'waste:operational_cost_create' %}" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-wallet2"></i> Catat Biaya Operasional
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="chart-container">
+            <h6><i class="bi bi-clock-history text-primary"></i> Transaksi Terbaru</h6>
+            {% if recent_transactions %}
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Jenis</th>
+                            <th>Sampah</th>
+                            <th class="text-end">Berat</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in recent_transactions %}
+                        <tr>
+                            <td><small>{{ t.date|date:"d/m H:i" }}</small></td>
+                            <td>
+                                {% if t.transaction_type == 'in' %}
+                                <span class="badge bg-success">Masuk</span>
+                                {% else %}
+                                <span class="badge bg-danger">Keluar</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ t.waste_type.name }}</td>
+                            <td class="text-end">{{ t.weight_kg }} kg</td>
+                            <td class="text-end fw-bold">Rp {{ t.total_price|floatformat:0|intcomma }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-3">Belum ada transaksi</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="chart-container">
+            <h6><i class="bi bi-building text-primary"></i> Penjualan ke Pabrik Terbaru</h6>
+            {% if recent_sales %}
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Pabrik</th>
+                            <th>Sampah</th>
+                            <th class="text-end">Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in recent_sales %}
+                        <tr>
+                            <td><small>{{ s.date|date:"d/m/Y" }}</small></td>
+                            <td>{{ s.factory_name }}</td>
+                            <td>{{ s.waste_type.name }}</td>
+                            <td class="text-end fw-bold">Rp {{ s.total_price|floatformat:0|intcomma }}</td>
+                            <td>
+                                {% if s.payment_status == 'paid' %}
+                                <span class="badge bg-success badge-status">Dibayar</span>
+                                {% elif s.payment_status == 'pending' %}
+                                <span class="badge bg-warning text-dark badge-status">Belum</span>
+                                {% else %}
+                                <span class="badge bg-info badge-status">Sebagian</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-3">Belum ada penjualan ke pabrik</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

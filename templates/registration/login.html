@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Sistem Daur Ulang{% endblock %}
+{% block nav_dashboard %}{% endblock %}
+
+{% block login_content %}
+<div class="login-page">
+    <div class="login-card">
+        <div class="text-center mb-4">
+            <i class="bi bi-recycle" style="font-size: 3rem; color: var(--primary-color);"></i>
+            <h2 class="mt-2">DAUR ULANG</h2>
+            <p class="text-muted">Sistem Manajemen Pengelolaan Sampah Daur Ulang</p>
+        </div>
+
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle"></i> Nama pengguna atau kata sandi salah. Silakan coba lagi.
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'accounts:login' %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+
+            <div class="mb-3">
+                <label for="id_username" class="form-label fw-bold">Nama Pengguna</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    <input type="text" name="username" id="id_username" class="form-control"
+                           placeholder="Masukkan nama pengguna" autofocus required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="id_password" class="form-label fw-bold">Kata Sandi</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input type="password" name="password" id="id_password" class="form-control"
+                           placeholder="Masukkan kata sandi" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 py-2 fw-bold mt-2">
+                <i class="bi bi-box-arrow-in-right"></i> Masuk
+            </button>
+        </form>
+
+        <div class="text-center mt-3">
+            <small class="text-muted">&copy; 2026 Sistem Manajemen Daur Ulang Sampah</small>
+        </div>
+    </div>
+</div>
+{% endblock %}

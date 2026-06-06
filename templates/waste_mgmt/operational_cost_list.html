@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Biaya Operasional - Sistem Daur Ulang{% endblock %}
+{% block page_title %}Data Biaya Operasional{% endblock %}
+{% block nav_opex %}active{% endblock %}
+
+{% block content %}
+{% load humanize %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div></div>
+    <a href="{% url 'waste:operational_cost_create' %}" class="btn btn-danger">
+        <i class="bi bi-wallet2"></i> Catat Biaya Operasional
+    </a>
+</div>
+
+<!-- Filter -->
+<div class="filter-bar">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small">Kategori</label>
+            <select name="category" class="form-select form-select-sm">
+                <option value="">Semua</option>
+                <option value="transport" {% if category == 'transport' %}selected{% endif %}>Transportasi</option>
+                <option value="rent" {% if category == 'rent' %}selected{% endif %}>Sewa Tempat</option>
+                <option value="salary" {% if category == 'salary' %}selected{% endif %}>Gaji Karyawan</option>
+                <option value="equipment" {% if category == 'equipment' %}selected{% endif %}>Peralatan</option>
+                <option value="utility" {% if category == 'utility' %}selected{% endif %}>Utilitas</option>
+                <option value="maintenance" {% if category == 'maintenance' %}selected{% endif %}>Perawatan</option>
+                <option value="other" {% if category == 'other' %}selected{% endif %}>Lainnya</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">Dari</label>
+            <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">Sampai</label>
+            <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-search"></i> Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="table-container">
+    {% if costs %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Kategori</th>
+                    <th>Deskripsi</th>
+                    <th class="text-end">Jumlah (Rp)</th>
+                    <th>No. Kwitansi</th>
+                    <th>Catatan</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in costs %}
+                <tr>
+                    <td>{{ c.date|date:"d/m/Y" }}</td>
+                    <td><span class="badge bg-secondary">{{ c.get_category_display }}</span></td>
+                    <td>{{ c.description }}</td>
+                    <td class="text-end fw-bold text-danger">Rp {{ c.amount|floatformat:0|intcomma }}</td>
+                    <td>{{ c.receipt_number|default:"-" }}</td>
+                    <td><small>{{ c.notes|default:"-" }}</small></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-wallet2" style="font-size: 3rem; color: #ccc;"></i>
+        <p class="text-muted mt-2">Belum ada data biaya operasional.</p>
+        <a href="{% url 'waste:operational_cost_create' %}" class="btn btn-danger btn-sm">
+            <i class="bi bi-wallet2"></i> Catat Biaya Pertama
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

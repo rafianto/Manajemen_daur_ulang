@@ -1,0 +1,309 @@
+/* Custom CSS for Daur Ulang Management System */
+:root {
+    --primary-color: #2e7d32;
+    --primary-dark: #1b5e20;
+    --primary-light: #4caf50;
+    --accent-color: #ff8f00;
+    --accent-light: #ffb300;
+    --danger-color: #c62828;
+    --bg-light: #f5f7f0;
+    --sidebar-bg: #1b5e20;
+    --sidebar-text: #e8f5e9;
+    --card-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+body {
+    background-color: var(--bg-light);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+    background: linear-gradient(180deg, var(--sidebar-bg) 0%, #0d3311 100%);
+    min-height: 100vh;
+    color: var(--sidebar-text);
+    padding-top: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.sidebar .brand {
+    padding: 20px 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+}
+
+.sidebar .brand h4 {
+    color: #fff;
+    font-weight: 700;
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.sidebar .brand small {
+    color: #a5d6a7;
+    font-size: 0.75rem;
+}
+
+.sidebar .nav-link {
+    color: var(--sidebar-text);
+    padding: 12px 20px;
+    border-radius: 0;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    border-left: 3px solid transparent;
+}
+
+.sidebar .nav-link:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border-left-color: var(--accent-color);
+}
+
+.sidebar .nav-link.active {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border-left-color: var(--accent-color);
+    font-weight: 600;
+}
+
+.sidebar .nav-link i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar .nav-section {
+    padding: 10px 20px 5px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #81c784;
+    margin-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Main content */
+.main-content {
+    margin-left: 250px;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+/* Top navbar */
+.top-navbar {
+    background: #fff;
+    box-shadow: var(--card-shadow);
+    padding: 12px 25px;
+    margin: -20px -20px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Cards */
+.stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+    border: none;
+    transition: transform 0.2s;
+    height: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-card .stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+
+.stat-card .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.stat-card .stat-label {
+    font-size: 0.8rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.bg-sales { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); }
+.bg-purchase { background: linear-gradient(135deg, #fff3e0, #ffe0b2); }
+.bg-opex { background: linear-gradient(135deg, #ffebee, #ffcdd2); }
+.bg-net-positive { background: linear-gradient(135deg, #e8f5e9, #a5d6a7); }
+.bg-net-negative { background: linear-gradient(135deg, #ffebee, #ef9a9a); }
+.bg-stock { background: linear-gradient(135deg, #e3f2fd, #bbdefb); }
+
+/* Tables */
+.table-container {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    padding: 20px;
+    overflow-x: auto;
+}
+
+.table th {
+    background: var(--primary-color);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+    padding: 12px;
+}
+
+.table td {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background: #f1f8e9;
+}
+
+/* Action buttons */
+.btn-action {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+}
+
+/* Chart containers */
+.chart-container {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.chart-container h6 {
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+/* Login page */
+.login-page {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-light) 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    width: 100%;
+    max-width: 420px;
+}
+
+.login-card h2 {
+    color: var(--primary-color);
+    font-weight: 800;
+}
+
+/* Filter bar */
+.filter-bar {
+    background: #fff;
+    border-radius: 12px;
+    padding: 15px 20px;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 20px;
+}
+
+.filter-bar .form-control,
+.filter-bar .form-select {
+    font-size: 0.85rem;
+}
+
+/* Badges */
+.badge-status {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+    border-radius: 20px;
+}
+
+/* Period toggle */
+.period-toggle .btn {
+    font-size: 0.8rem;
+    padding: 6px 16px;
+}
+
+.period-toggle .btn.active {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 200px;
+    }
+    .main-content {
+        margin-left: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        position: relative;
+        width: 100%;
+        min-height: auto;
+    }
+    .main-content {
+        margin-left: 0;
+    }
+    .stat-card .stat-value {
+        font-size: 1.2rem;
+    }
+}
+
+/* Accordion animation for sidebar on mobile */
+@media (max-width: 768px) {
+    .sidebar .nav-section {
+        cursor: pointer;
+    }
+}
+
+/* Print styles */
+@media print {
+    .sidebar, .top-navbar, .btn-action, .filter-bar {
+        display: none !important;
+    }
+    .main-content {
+        margin-left: 0 !important;
+    }
+}
+
+/* Custom scrollbar */
+.sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+}

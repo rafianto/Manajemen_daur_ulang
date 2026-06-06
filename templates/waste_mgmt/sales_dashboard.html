@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Penjualan - Sistem Daur Ulang{% endblock %}
+{% block page_title %}Dashboard Penjualan{% endblock %}
+{% block nav_sales %}active{% endblock %}
+
+{% block content %}
+{% load humanize %}
+
+<!-- Period Toggle -->
+<div class="period-toggle mb-4">
+    <div class="btn-group" role="group">
+        <a href="{% url 'waste:sales_dashboard' %}?period=daily" class="btn btn-outline-success {% if period == 'daily' %}active{% endif %}">
+            <i class="bi bi-calendar-day"></i> Harian
+        </a>
+        <a href="{% url 'waste:sales_dashboard' %}?period=weekly" class="btn btn-outline-success {% if period == 'weekly' %}active{% endif %}">
+            <i class="bi bi-calendar-week"></i> Mingguan
+        </a>
+        <a href="{% url 'waste:sales_dashboard' %}?period=monthly" class="btn btn-outline-success {% if period == 'monthly' %}active{% endif %}">
+            <i class="bi bi-calendar-month"></i> Bulanan
+        </a>
+    </div>
+</div>
+
+<!-- Summary -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card bg-sales">
+            <div class="stat-label">Total Penjualan</div>
+            <div class="stat-value text-success">Rp {{ total_sales|floatformat:0|intcomma }}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card bg-stock">
+            <div class="stat-label">Total Berat Terjual</div>
+            <div class="stat-value text-primary">{{ total_weight|floatformat:2 }} Kg</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card bg-opex">
+            <div class="stat-label">Pembayaran Tertunda</div>
+            <div class="stat-value text-danger">Rp {{ pending_payments|floatformat:0|intcomma }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-3 mb-4">
+    <div class="col-md-8">
+        <div class="chart-container">
+            <h6><i class="bi bi-bar-chart text-primary"></i> Grafik Penjualan {% if period == 'daily' %}Harian{% elif period == 'weekly' %}Mingguan{% else %}Bulanan{% endif %}</h6>
+            <canvas id="salesChart" height="100"></canvas>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="chart-container">
+            <h6><i class="bi bi-pie-chart text-primary"></i> Penjualan per Jenis Sampah</h6>
+            <canvas id="pieChart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Tables -->
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="chart-container">
+            <h6><i class="bi bi-tag text-primary"></i> Penjualan per Jenis Sampah</h6>
+            {% if sales_by_type %}
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Jenis Sampah</th>
+                            <th class="text-end">Berat (Kg)</th>
+                            <th class="text-end">Total (Rp)</th>
+                            <th class="text-center">Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in sales_by_type %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-secondary me-1">{{ item.waste_type__category }}</span>
+                                {{ item.waste_type__name }}
+                            </td>
+                            <td class="text-end">{{ item.total_weight|floatformat:2 }}</td>
+                            <td class="text-end fw-bold">Rp {{ item.total_price|floatformat:0|intcomma }}</td>
+                            <td class="text-center">{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-3">Belum ada data penjualan</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="chart-container">
+            <h6><i class="bi bi-building text-primary"></i> Top Pabrik Pembeli</h6>
+            {% if top_factories %}
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Nama Pabrik</th>
+                            <th class="text-end">Berat (Kg)</th>
+                            <th class="text-end">Total (Rp)</th>
+                            <th class="text-center">Transaksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in top_factories %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ item.factory_name }}</td>
+                            <td class="text-end">{{ item.total_weight|floatformat:2 }}</td>
+                            <td class="text-end fw-bold">Rp {{ item.total_price|floatformat:0|intcomma }}</td>
+                            <td class="text-center">{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-3">Belum ada data pabrik</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const labels = {{ chart_labels|safe }};
+    const salesValues = {{ chart_values|safe }};
+    const weightValues = {{ chart_weights|safe }};
+
+    // Sales Bar + Line chart
+    new Chart(document.getElementById('salesChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Total Penjualan (Rp)',
+                    data: salesValues,
+                    backgroundColor: 'rgba(46, 125, 50, 0.7)',
+                    borderColor: '#2e7d32',
+                    borderWidth: 1,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Berat (Kg)',
+                    data: weightValues,
+                    type: 'line',
+                    borderColor: '#ff8f00',
+                    backgroundColor: 'rgba(255, 143, 0, 0.1)',
+                    tension: 0.3,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            if (context.dataset.label.includes('Rp')) {
+                                return context.dataset.label + ': Rp ' + context.parsed.y.toLocaleString('id-ID');
+                            }
+                            return context.dataset.label + ': ' + context.parsed.y.toLocaleString('id-ID') + ' kg';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    position: 'left',
+                    ticks: {
+                        callback: function(value) { return 'Rp ' + (value / 1000000).toFixed(1) + ' jt'; }
+                    }
+                },
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    grid: { drawOnChartArea: false },
+                    ticks: {
+                        callback: function(value) { return value + ' kg'; }
+                    }
+                }
+            }
+        }
+    });
+
+    // Pie chart for waste types
+    {% if sales_by_type %}
+    const pieLabels = [{% for item in sales_by_type %}'{{ item.waste_type__name }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+    const pieValues = [{% for item in sales_by_type %}{{ item.total_price }}{% if not forloop.last %},{% endif %}{% endfor %}];
+    const colors = ['#2e7d32', '#ff8f00', '#1565c0', '#c62828', '#6a1b9a', '#00838f', '#4e342e', '#37474f'];
+
+    new Chart(document.getElementById('pieChart'), {
+        type: 'doughnut',
+        data: {
+            labels: pieLabels,
+            datasets: [{
+                data: pieValues,
+                backgroundColor: colors.slice(0, pieLabels.length),
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 11 } } },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': Rp ' + parseFloat(context.parsed).toLocaleString('id-ID', {minimumFractionDigits: 0});
+                        }
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+});
+</script>
+{% endblock %}

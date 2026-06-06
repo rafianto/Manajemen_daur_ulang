@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Data Pengupul - Sistem Daur Ulang{% endblock %}
+{% block page_title %}Data Pengupul{% endblock %}
+{% block nav_collectors %}active{% endblock %}
+
+{% block content %}
+{% load humanize %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <a href="{% url 'waste:collector_create' %}" class="btn btn-success">
+            <i class="bi bi-person-plus"></i> Tambah Pengupul
+        </a>
+    </div>
+</div>
+
+<!-- Filter -->
+<div class="filter-bar">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <input type="text" name="search" class="form-control" placeholder="Cari nama, telepon, KTP..." value="{{ search }}">
+        </div>
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="">Semua Status</option>
+                <option value="active" {% if status == 'active' %}selected{% endif %}>Aktif</option>
+                <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Tidak Aktif</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-outline-success"><i class="bi bi-search"></i> Cari</button>
+        </div>
+    </form>
+</div>
+
+<div class="table-container">
+    {% if collectors %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nama</th>
+                    <th>Telepon</th>
+                    <th>No. KTP</th>
+                    <th>Tanggal Bergabung</th>
+                    <th>Total Suplai (Kg)</th>
+                    <th>Total Pembayaran</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in collectors %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td class="fw-bold">{{ c.name }}</td>
+                    <td>{{ c.phone|default:"-" }}</td>
+                    <td>{{ c.id_card_number|default:"-" }}</td>
+                    <td>{{ c.join_date|date:"d/m/Y" }}</td>
+                    <td class="text-end">{{ c.total_supplied_kg|floatformat:2 }}</td>
+                    <td class="text-end">Rp {{ c.total_payment|floatformat:0|intcomma }}</td>
+                    <td>
+                        {% if c.is_active %}
+                        <span class="badge bg-success badge-status">Aktif</span>
+                        {% else %}
+                        <span class="badge bg-secondary badge-status">Tidak Aktif</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'waste:collector_detail' c.pk %}" class="btn btn-info btn-action text-white" title="Detail">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{% url 'waste:collector_update' c.pk %}" class="btn btn-warning btn-action" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-people" style="font-size: 3rem; color: #ccc;"></i>
+        <p class="text-muted mt-2">Belum ada data pengupul.</p>
+        <a href="{% url 'waste:collector_create' %}" class="btn btn-success btn-sm">
+            <i class="bi bi-person-plus"></i> Tambah Pengupul Pertama
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Riwayat Transaksi - Sistem Daur Ulang{% endblock %}
+{% block page_title %}Riwayat Transaksi Sampah{% endblock %}
+{% block nav_trans_list %}active{% endblock %}
+
+{% block content %}
+{% load humanize %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex gap-2">
+        <a href="{% url 'waste:transaction_in_create' %}" class="btn btn-success btn-sm">
+            <i class="bi bi-box-arrow-in-down"></i> Sampah Masuk
+        </a>
+        <a href="{% url 'waste:transaction_out_create' %}" class="btn btn-danger btn-sm">
+            <i class="bi bi-box-arrow-up-right"></i> Sampah Keluar
+        </a>
+    </div>
+</div>
+
+<!-- Filter -->
+<div class="filter-bar">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-2">
+            <label class="form-label small">Jenis Transaksi</label>
+            <select name="type" class="form-select form-select-sm">
+                <option value="">Semua</option>
+                <option value="in" {% if trans_type == 'in' %}selected{% endif %}>Masuk</option>
+                <option value="out" {% if trans_type == 'out' %}selected{% endif %}>Keluar</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small">Jenis Sampah</label>
+            <select name="waste_type" class="form-select form-select-sm">
+                <option value="">Semua</option>
+                {% for wt in waste_types %}
+                <option value="{{ wt.pk }}" {% if waste_type_id == wt.pk|slugify %}selected{% endif %}>{{ wt.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">Dari Tanggal</label>
+            <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">Sampai Tanggal</label>
+            <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-outline-success btn-sm"><i class="bi bi-search"></i> Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="table-container">
+    {% if transactions %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Jenis</th>
+                    <th>Pengupul</th>
+                    <th>Jenis Sampah</th>
+                    <th class="text-end">Berat (Kg)</th>
+                    <th class="text-end">Harga/Kg</th>
+                    <th class="text-end">Total (Rp)</th>
+                    <th>Catatan</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <td><small>{{ t.date|date:"d/m/Y H:i" }}</small></td>
+                    <td>
+                        {% if t.transaction_type == 'in' %}
+                        <span class="badge bg-success badge-status">Masuk</span>
+                        {% else %}
+                        <span class="badge bg-danger badge-status">Keluar</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ t.collector|default:"-" }}</td>
+                    <td>
+                        <span class="badge bg-secondary me-1">{{ t.waste_type.get_category_display }}</span>
+                        {{ t.waste_type.name }}
+                    </td>
+                    <td class="text-end fw-bold">{{ t.weight_kg }}</td>
+                    <td class="text-end">Rp {{ t.price_per_kg|floatformat:0|intcomma }}</td>
+                    <td class="text-end fw-bold">Rp {{ t.total_price|floatformat:0|intcomma }}</td>
+                    <td><small>{{ t.notes|default:"-" }}</small></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-receipt" style="font-size: 3rem; color: #ccc;"></i>
+        <p class="text-muted mt-2">Belum ada data transaksi.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

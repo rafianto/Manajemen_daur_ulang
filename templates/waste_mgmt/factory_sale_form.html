@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Sistem Daur Ulang{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block nav_factory_create %}active{% endblock %}
+
+{% block content %}
+<div class="chart-container" style="max-width: 700px;">
+    <h6><i class="bi bi-building text-primary"></i> {{ title }}</h6>
+    <form method="post" id="saleForm" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label fw-bold">{{ field.label }}</label>
+            {{ field }}
+            
+            <!-- Khusus field waste_type: tampilkan info harga otomatis -->
+            {% if field.name == 'waste_type' %}
+            <div id="priceAutoInfo" class="form-text text-primary mt-1" style="display: none;">
+                <i class="bi bi-lightbulb"></i> Harga otomatis diisi dari harga jual tertinggi ke pabrik
+            </div>
+            {% endif %}
+
+            <!-- Khusus field weight_kg: tampilkan info stok dan error -->
+            {% if field.name == 'weight_kg' %}
+            
+            <!-- Info Box Stok Tersedia -->
+            <div id="stockInfoWeight" class="alert alert-info p-2 mt-2 d-flex justify-content-between align-items-center" style="display: none;">
+                <span><i class="bi bi-box-seam"></i> Stok tersedia saat ini:</span>
+                <strong id="availableStockText" class="fs-6">0 kg</strong>
+            </div>
+            
+            <!-- Pesan Error Stok -->
+            <div id="stockErrorMsg" class="invalid-feedback" style="display: none;"></div>
+            {% endif %}
+
+            {% if field.errors %}
+            <div class="text-danger small">{{ field.errors }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <!-- Error Validasi Stok dari Backend (forms.py) -->
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div class="p-3 bg-light rounded mb-3">
+            <div class="row">
+                <div class="col-md-6">
+                    <span class="text-muted">Total Penjualan:</span>
+                    <span class="fw-bold fs-5 text-success" id="totalPrice">Rp 0</span>
+                </div>
+                <div class="col-md-6">
+                    <span class="text-muted">Pendapatan Bersih:</span>
+                    <span class="fw-bold fs-5 text-primary" id="netRevenue">Rp 0</span>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                <i class="bi bi-check-circle"></i> Simpan Penjualan
+            </button>
+            <a href="{% url 'waste:factory_sale_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Batal
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('saleForm');
+    const wasteTypeField = form.querySelector('[name="waste_type"]');
+    const weightField = form.querySelector('[name="weight_kg"]');
+    const priceField = form.querySelector('[name="price_per_kg"]');
+    const deliveryField = form.querySelector('[name="delivery_fee"]');
+    
+    const totalDisplay = document.getElementById('totalPrice');
+    const netDisplay = document.getElementById('netRevenue');
+    const stockInfoWeight = document.getElementById('stockInfoWeight');
+    const availableStockText = document.getElementById('availableStockText');
+    const stockErrorMsg = document.getElementById('stockErrorMsg');
+    const priceAutoInfo = document.getElementById('priceAutoInfo');
+    const submitBtn = document.getElementById('submitBtn');
+
+    let currentAvailableStock = 0;
+
+    // 1. Fungsi Kalkulasi Total & Validasi Stok
+    function updateTotalsAndValidate() {
+        const weight = parseFloat(weightField.value) || 0;
+        const price = parseFloat(priceField.value) || 0;
+        const delivery = parseFloat(deliveryField.value) || 0;
+        
+        const total = weight * price;
+        const net = total - delivery;
+        
+        totalDisplay.textContent = 'Rp ' + total.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        netDisplay.textContent = 'Rp ' + net.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+
+        // Validasi Stok
+        let sisa = currentAvailableStock - weight;
+        availableStockText.textContent = sisa.toFixed(2) + ' kg';
+
+        if (weight > currentAvailableStock) {
+            stockErrorMsg.textContent = `Stok tidak mencukupi! Maksimal berat jual: ${currentAvailableStock.toFixed(2)} kg`;
+            stockErrorMsg.style.display = 'block';
+            weightField.classList.add('is-invalid');
+            availableStockText.classList.add('text-danger');
+            availableStockText.classList.remove('text-primary');
+            submitBtn.disabled = true; // Kunci tombol simpan
+        } else {
+            stockErrorMsg.style.display = 'none';
+            weightField.classList.remove('is-invalid');
+            availableStockText.classList.remove('text-danger');
+            availableStockText.classList.add('text-primary');
+            submitBtn.disabled = false; // Buka kunci
+        }
+    }
+
+    // 2. Fetch API Stok & Harga Tertinggi
+    function fetchFactorySaleInfo(wasteTypeId) {
+        if (!wasteTypeId) {
+            stockInfoWeight.style.display = 'none';
+            priceAutoInfo.style.display = 'none';
+            currentAvailableStock = 0;
+            return;
+        }
+
+        // Panggil API get_waste_info_api yang sudah diperbaharui di views.py
+        fetch(`/waste/api/waste-info/${wasteTypeId}/`)
+            .then(response => {
+                if (!response.ok) throw new Error('API Error');
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) return;
+
+                // Set informasi Stok
+                currentAvailableStock = data.available_stock;
+                availableStockText.textContent = currentAvailableStock.toFixed(2) + ' kg';
+                stockInfoWeight.style.display = 'flex'; // Tampilkan info box stok
+                
+                // Set Harga Otomatis (Tertinggi)
+                if (data.highest_price && data.highest_price > 0) {
+                    priceField.value = data.highest_price;
+                    priceAutoInfo.style.display = 'block'; // Tampilkan keterangan
+                } else {
+                    priceField.value = data.default_price || ''; // Fallback ke default
+                    priceAutoInfo.style.display = 'block';
+                }
+
+                updateTotalsAndValidate(); // Hitung ulang & validasi segera
+            })
+            .catch(error => {
+                console.error('Error fetching factory sale info:', error);
+                stockInfoWeight.style.display = 'none';
+            });
+    }
+
+    // 3. Event Listeners
+    weightField.addEventListener('input', updateTotalsAndValidate);
+    priceField.addEventListener('input', updateTotalsAndValidate);
+    deliveryField.addEventListener('input', updateTotalsAndValidate);
+    
+    if (wasteTypeField) {
+        wasteTypeField.addEventListener('change', function() {
+            fetchFactorySaleInfo(this.value);
+        });
+    }
+
+    // Trigger saat load (untuk kasus edit form yang sudah ada isinya)
+    if (wasteTypeField.value) {
+        fetchFactorySaleInfo(wasteTypeField.value);
+    }
+});
+</script>
+{% endblock %}
